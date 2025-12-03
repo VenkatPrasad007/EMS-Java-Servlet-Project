@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - EMS</title>
+  <style>
+ body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f0f4f8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  width: 300px;
+  text-align: center;
+}
+
+.login-container h2 {
+  margin-bottom: 1.5rem;
+  color: #004080;
+}
+
+input {
+  width: 90%;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #004080;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #003366;
+}
+
+.error {
+  color: red;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+  </style>
+</head>
+<body>
+ <div class="login-container">
+    <h2>Employee Management Login</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+      <p id="errorMsg" class="error"></p>
+    </form>
+  </div>
+
+
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+	  const form = document.getElementById("loginForm");
+	  const errorMsg = document.getElementById("errorMsg");
+
+	  form.addEventListener("submit", async function (e) {
+	    e.preventDefault();
+
+	    const email = document.getElementById("username").value.trim();
+	    const password = document.getElementById("password").value.trim();
+
+	    if (!email || !password) {
+	      errorMsg.textContent = "Please enter both email and password.";
+	      return;
+	    }
+
+	    const formData = new URLSearchParams();
+	    formData.append("email", email);
+	    formData.append("password", password);
+
+	    try {
+	      const response = await fetch("http://localhost:8080/EMS/login", {
+	        method: "POST",
+	        headers: {
+	          "Content-Type": "application/x-www-form-urlencoded"
+	        },
+	        body: formData.toString()
+	      });
+
+	      if (response.ok) {
+	        const result = await response.json();
+	
+	        if (result.status === "success") {
+	        	localStorage.setItem('employeeId', result.employeeId);
+	          if (result.role === "admin") {
+	            window.location.href = "admin.html";
+	          } else {
+	        	  
+	            window.location.href = "home.html";
+	          }
+	        } else {
+	          errorMsg.textContent = result.message || "Login Unsuccessful";
+	        }
+	      } else {
+	        const result = await response.json();
+	        errorMsg.textContent = result.message || "Login Unsuccessful";
+	      }
+	    } catch (error) {
+	      console.error("Login error:", error);
+	      errorMsg.textContent = "Server error. Please try again later.";
+	    }
+	  });
+	});
+  </script>
+</body>
+</html>

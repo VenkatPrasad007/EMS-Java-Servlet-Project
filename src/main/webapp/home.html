@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Home - Employee Management System</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f6f9;
+      color: #333;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #004080;
+      padding: 1rem 2rem;
+      color: white;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    .welcome {
+      text-align: center;
+      padding: 3rem 2rem;
+      background-color: #e0ecf8;
+    }
+
+    .employee-card {
+      max-width: 600px;
+      margin: 2rem auto;
+      background-color: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .employee-card h2 {
+      color: #004080;
+      margin-bottom: 1rem;
+    }
+
+    .employee-card p {
+      margin: 0.5rem 0;
+      line-height: 1.5;
+    }
+
+    .employee-card input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .buttons button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .edit-btn {
+      background-color: #004080;
+      color: white;
+    }
+
+    .save-btn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background-color: #004080;
+      color: white;
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="logo">EMS</div>
+      <ul class="nav-links">
+        <li><a href="logout" id="logout" >Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="welcome">
+    <h1>Welcome to the Employee Management System</h1>
+    <p>Track your profile</p>
+  </section>
+
+  <div id="employeeInfo" class="employee-card">
+    <h2>Loading employee data...</h2>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 EMS. All rights reserved.</p>
+  </footer>
+
+  <script>
+ 	
+  document.getElementById("logout").addEventListener("click", function (event) {
+	    event.preventDefault(); // Prevent default link navigation
+
+	    try {
+	      // Clear all localStorage data
+	      localStorage.clear();
+
+	      // Optionally, clear only specific keys:
+	      // localStorage.removeItem("token");
+
+	      alert("You have been logged out.");
+
+	      // Redirect to login page
+	      window.location.href = "login.html";
+	    } catch (err) {
+	      console.error("Error clearing localStorage:", err);
+	    }
+	  });
+  
+  const employeeId = localStorage.getItem("employeeId"); // Replace with dynamic ID if needed
+  const employeeInfo = document.getElementById('employeeInfo');
+  let employeeData = null;
+  let isEditing = false;
+
+  function renderEmployeeCard(emp) {
+    if (!isEditing) {
+      employeeInfo.innerHTML = `
+        <h2>Welcome, ${emp.ename}</h2>
+        <p><strong>Employee ID:</strong> ${emp.employeeId}</p>
+        <p><strong>Email:</strong> ${emp.email}</p>
+        <p><strong>Mobile:</strong> ${emp.mobile}</p>
+        <p><strong>Gender:</strong> ${emp.gender}</p>
+        <p><strong>Department:</strong> ${emp.department}</p>
+        <p><strong>Designation:</strong> ${emp.designation}</p>
+        <p><strong>Date of Joining:</strong> ${emp.doj}</p>
+        <p><strong>Salary:</strong> ₹${emp.salary}</p>
+        <p><strong>Role:</strong> ${emp.role}</p>
+        <div class="buttons">
+          <button class="edit-btn" onclick="toggleEdit()">Edit</button>
+        </div>
+      `;
+    } else {
+      employeeInfo.innerHTML = `
+        <h2>Edit Profile</h2>
+        <label><strong>Name:</strong><br><input id="ename" value="${emp.ename}" /></label>
+        <label><strong>Email:</strong><br><input id="email" value="${emp.email}" /></label>
+        <label><strong>Mobile:</strong><br><input id="mobile" value="${emp.mobile}" /></label>
+        <label><strong>Gender:</strong><br><input id="gender" value="${emp.gender}" /></label>
+        <div class="buttons">
+          <button class="save-btn" onclick="saveChanges()">Save</button>
+          <button class="edit-btn" onclick="toggleEdit()">Cancel</button>
+        </div>
+      `;
+    }
+  }
+
+  function toggleEdit() {
+    isEditing = !isEditing;
+    renderEmployeeCard(employeeData);
+  }
+
+  function saveChanges() {
+    const updated = {
+      employeeId: employeeData.employeeId.toString(),
+      ename: document.getElementById("ename").value,
+      email: document.getElementById("email").value,
+      mobile: document.getElementById("mobile").value,
+      gender: document.getElementById("gender").value
+    };
+
+    const formData = new URLSearchParams();
+    for (const key in updated) {
+      formData.append(key, updated[key]);
+    }
+
+    fetch("http://localhost:8080/EMS/api/updateEmp", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: formData.toString()
+    })
+    .then(resp => resp.json())
+    .then(res => {
+      if (res.status === "success") {
+        employeeData = res.employee;
+        isEditing = false;
+        renderEmployeeCard(employeeData);
+      } else {
+        alert(res.message || "Update failed.");
+      }
+    })
+    .catch(err => {
+      console.error("Update error:", err);
+      alert("Server error. Please try again later.");
+    });
+  }
+
+  window.onload = () => {
+    const formData = new URLSearchParams();
+    formData.append("employeeId", employeeId.toString());
+
+    fetch("http://localhost:8080/EMS/api/fetchUser", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: formData.toString()
+    })
+    .then(resp => resp.json())
+    .then(res => {
+      if (res.status === "success") {
+        employeeData = res.employee;
+        renderEmployeeCard(employeeData);
+      } else {
+        employeeInfo.innerHTML = `<p class="error">${res.message || "User not found."}</p>`;
+      }
+    })
+    .catch(err => {
+      console.error("Fetch error:", err);
+      employeeInfo.innerHTML = `<p class="error">Server error. Please try again later.</p>`;
+    });
+  };
+
+  </script>
+</body>
+</html>
